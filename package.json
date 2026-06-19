@@ -1,7 +1,7 @@
 {
   "name": "spotify-mcp",
-  "version": "0.1.4",
-  "description": "MCP server for the Spotify Web API — use Claude to manage playlists, control playback, and get recommendations",
+  "version": "0.1.5",
+  "description": "MCP server for the Spotify Web API \u2014 use Claude to manage playlists, control playback, and get recommendations",
   "type": "module",
   "bin": {
     "spotify-mcp": "dist/index.js"
@@ -20,7 +20,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/calebWei/SpotifyMCP.git"
+    "url": "git+https://github.com/shxfee/spotify-mcp.git"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "latest",

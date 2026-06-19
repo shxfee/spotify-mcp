@@ -12,7 +12,9 @@ export function registerFollowingTools(server: McpServer, client: SpotifyClient)
       ids: z.array(z.string()).min(1).max(50).describe('Spotify artist IDs to follow'),
     },
     async (args) => {
-      await client.put('/me/following?type=artist', { ids: args.ids });
+      // Follow now goes through the unified /me/library with artist URIs in the query string.
+      const uris = args.ids.map((id) => `spotify:artist:${id}`).join(',');
+      await client.put(`/me/library?uris=${uris}`);
       return { content: [{ type: 'text', text: `Now following ${args.ids.length} artist(s).` }] };
     },
   );
@@ -25,7 +27,8 @@ export function registerFollowingTools(server: McpServer, client: SpotifyClient)
       ids: z.array(z.string()).min(1).max(50).describe('Spotify artist IDs to unfollow'),
     },
     async (args) => {
-      await client.delete('/me/following?type=artist', { ids: args.ids });
+      const uris = args.ids.map((id) => `spotify:artist:${id}`).join(',');
+      await client.delete(`/me/library?uris=${uris}`);
       return {
         content: [{ type: 'text', text: `Unfollowed ${args.ids.length} artist(s).` }],
       };

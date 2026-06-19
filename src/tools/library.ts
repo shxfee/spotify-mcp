@@ -136,7 +136,8 @@ export function registerLibraryTools(server: McpServer, client: SpotifyClient): 
         .describe('Spotify URIs to save (e.g. ["spotify:track:abc", "spotify:album:xyz"])'),
     },
     async (args) => {
-      await client.put('/me/library', { uris: args.uris });
+      // Spotify's unified /me/library takes uris in the query string, not the body.
+      await client.put(`/me/library?uris=${args.uris.join(',')}`);
       return { content: [{ type: 'text', text: `Saved ${args.uris.length} item(s) to library.` }] };
     },
   );
@@ -149,7 +150,7 @@ export function registerLibraryTools(server: McpServer, client: SpotifyClient): 
       uris: z.array(z.string()).min(1).max(50).describe('Spotify URIs to remove'),
     },
     async (args) => {
-      await client.delete('/me/library', { uris: args.uris });
+      await client.delete(`/me/library?uris=${args.uris.join(',')}`);
       return {
         content: [{ type: 'text', text: `Removed ${args.uris.length} item(s) from library.` }],
       };

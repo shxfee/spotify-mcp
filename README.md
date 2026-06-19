@@ -88,3 +88,12 @@ Copy `.env.example` to `.env` and fill in your Client ID, then:
 npm run auth   # authenticate with Spotify
 npm run dev    # run from source (no build needed)
 ```
+
+## Fork notes (shxfee/spotify-mcp)
+
+Forked from [calebWei/SpotifyMCP](https://github.com/calebWei/SpotifyMCP) and patched for Spotify's Feb-2026 Web API changes:
+
+- The unified `/me/library` write endpoints (`save_items`, `remove_saved_items`, `follow_artist`, `unfollow_artist`) take `uris` in the **query string**, not the JSON body. The upstream code sent them in the body, which returns `400 Missing required field: uris`. Fixed to use the query string.
+- Following/unfollowing artists now routes through `/me/library` with `spotify:artist:<id>` URIs (the type-specific `/me/following` write endpoints were removed).
+
+Also note: the app must be allowlisted (Dashboard → User Management) — un-allowlisted users get `403` on writes even with valid tokens.
