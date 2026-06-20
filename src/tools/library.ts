@@ -127,12 +127,12 @@ export function registerLibraryTools(server: McpServer, client: SpotifyClient): 
   // save_items
   server.tool(
     'save_items',
-    "Save one or more items to the user's library. Accepts track, album, show, and episode URIs (e.g. spotify:track:abc). Max 50.",
+    "Save one or more items to the user's library. Accepts track, album, show, and episode URIs (e.g. spotify:track:abc). Max 40.",
     {
       uris: z
         .array(z.string())
         .min(1)
-        .max(50)
+        .max(40)
         .describe('Spotify URIs to save (e.g. ["spotify:track:abc", "spotify:album:xyz"])'),
     },
     async (args) => {
@@ -145,9 +145,9 @@ export function registerLibraryTools(server: McpServer, client: SpotifyClient): 
   // remove_saved_items
   server.tool(
     'remove_saved_items',
-    "Remove one or more items from the user's library. Max 50.",
+    "Remove one or more items from the user's library. Max 40.",
     {
-      uris: z.array(z.string()).min(1).max(50).describe('Spotify URIs to remove'),
+      uris: z.array(z.string()).min(1).max(40).describe('Spotify URIs to remove'),
     },
     async (args) => {
       await client.delete(`/me/library?uris=${args.uris.join(',')}`);

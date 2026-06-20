@@ -7,9 +7,9 @@ export function registerFollowingTools(server: McpServer, client: SpotifyClient)
   // follow_artist
   server.tool(
     'follow_artist',
-    'Follow one or more artists. Max 50.',
+    'Follow one or more artists. Max 40.',
     {
-      ids: z.array(z.string()).min(1).max(50).describe('Spotify artist IDs to follow'),
+      ids: z.array(z.string()).min(1).max(40).describe('Spotify artist IDs to follow'),
     },
     async (args) => {
       // Follow now goes through the unified /me/library with artist URIs in the query string.
@@ -22,9 +22,9 @@ export function registerFollowingTools(server: McpServer, client: SpotifyClient)
   // unfollow_artist
   server.tool(
     'unfollow_artist',
-    'Unfollow one or more artists. Max 50.',
+    'Unfollow one or more artists. Max 40.',
     {
-      ids: z.array(z.string()).min(1).max(50).describe('Spotify artist IDs to unfollow'),
+      ids: z.array(z.string()).min(1).max(40).describe('Spotify artist IDs to unfollow'),
     },
     async (args) => {
       const uris = args.ids.map((id) => `spotify:artist:${id}`).join(',');
