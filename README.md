@@ -2,6 +2,10 @@
 
 An MCP server that wraps the Spotify Web API, letting AI assistants (like Claude) create and manage playlists, search for music, control playback, and get personalized recommendations.
 
+## Ownership
+
+This fork is owned and maintained by [**shxfee**](https://github.com/shxfee). It carries fixes and changes that diverge from upstream — including hardened response handling for Spotify endpoints that return non-JSON success bodies (e.g. the playback queue). Originally forked from [calebWei/SpotifyMCP](https://github.com/calebWei/SpotifyMCP); credit to the original author for the foundation.
+
 ## Quick setup
 
 ### 1. Create a Spotify app
@@ -76,8 +80,8 @@ This is a personal project, not affiliated with or endorsed by Spotify. It is pr
 ## Development
 
 ```bash
-git clone https://github.com/calebWei/SpotifyMCP.git
-cd SpotifyMCP
+git clone https://github.com/shxfee/spotify-mcp.git
+cd spotify-mcp
 npm install
 npm run build
 ```
