@@ -156,18 +156,27 @@ export class SpotifyClient {
     }
 
     if (!res.ok) {
-      let message = `Spotify API error ${res.status}`;
-      if (res.status === 403) {
+      // Always prefer Spotify's own error.message — it carries the real reason
+      // (e.g. "Cannot control device volume" / reason VOLUME_CONTROL_DISALLOW).
+      // Premium is just one specific 403 reason; don't claim it for every 403.
+      let message = '';
+      let reason: string | undefined;
+      try {
+        const err = await res.json() as { error?: { message?: string; reason?: string } };
+        message = err.error?.message ?? '';
+        reason = err.error?.reason;
+      } catch { /* no body or non-JSON body */ }
+
+      if (reason === 'PREMIUM_REQUIRED') {
         message = 'This action requires Spotify Premium';
-      } else if (res.status === 404) {
-        message = 'The requested resource was not found on Spotify';
-      } else if (res.status === 503) {
-        message = 'Spotify service is temporarily unavailable — try again shortly';
-      } else {
-        try {
-          const err = await res.json() as { error?: { message?: string } };
-          if (err.error?.message) message = err.error.message;
-        } catch { /* ignore JSON parse failures */ }
+      } else if (!message) {
+        if (res.status === 404) {
+          message = 'The requested resource was not found on Spotify';
+        } else if (res.status === 503) {
+          message = 'Spotify service is temporarily unavailable — try again shortly';
+        } else {
+          message = `Spotify API error ${res.status}`;
+        }
       }
       throw new SpotifyApiError(res.status, message);
     }
