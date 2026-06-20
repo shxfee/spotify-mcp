@@ -17,6 +17,25 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/**
+ * Read a successful response body as JSON, tolerating the cases Spotify
+ * actually returns: 204 No Content, an empty body, or a non-JSON body.
+ *
+ * Notably POST /me/player/queue replies 200 with an opaque, non-JSON
+ * tracking token (~27 bytes) — calling res.json() on it throws. Endpoints
+ * with no meaningful payload return null instead of erroring.
+ */
+async function parseJsonBody<T>(res: Response): Promise<T | null> {
+  if (res.status === 204) return null;
+  const text = await res.text();
+  if (!text) return null;
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    return null;
+  }
+}
+
 export class SpotifyClient {
   private tokens: TokenData | null = null;
   private loadPromise: Promise<TokenData> | null = null;
@@ -160,8 +179,7 @@ export class SpotifyClient {
     const url = this.buildUrl(path, params);
     return this.enqueue(async () => {
       const res = await this.rawRequest('GET', url);
-      if (res.status === 204) return null;
-      return res.json() as Promise<T>;
+      return parseJsonBody<T>(res);
     });
   }
 
@@ -169,8 +187,7 @@ export class SpotifyClient {
     const url = this.buildUrl(path);
     return this.enqueue(async () => {
       const res = await this.rawRequest('POST', url, body);
-      if (res.status === 204) return null;
-      return res.json() as Promise<T>;
+      return parseJsonBody<T>(res);
     });
   }
 
