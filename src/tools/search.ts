@@ -49,8 +49,9 @@ export function registerSearchTools(server: McpServer, client: SpotifyClient): v
       if (results.tracks?.items.length) {
         lines.push(`TRACKS (${results.tracks.total} total):`);
         for (const t of results.tracks.items) {
-          const artists = t.artists.map((a) => a.name).join(', ');
-          lines.push(`  • "${t.name}" by ${artists} — ${t.album.name} (${formatDuration(t.duration_ms)}) | URI: ${t.uri}`);
+          if (!t) continue;
+          const artists = t.artists?.map((a) => a.name).join(', ') ?? 'Unknown';
+          lines.push(`  • "${t.name}" by ${artists} — ${t.album?.name ?? 'Unknown'} (${formatDuration(t.duration_ms)}) | URI: ${t.uri}`);
         }
         lines.push('');
       }
@@ -58,7 +59,8 @@ export function registerSearchTools(server: McpServer, client: SpotifyClient): v
       if (results.artists?.items.length) {
         lines.push(`ARTISTS (${results.artists.total} total):`);
         for (const a of results.artists.items) {
-          const genres = a.genres.length ? ` — ${a.genres.slice(0, 3).join(', ')}` : '';
+          if (!a) continue;
+          const genres = a.genres?.length ? ` — ${a.genres.slice(0, 3).join(', ')}` : '';
           lines.push(`  • ${a.name}${genres} | URI: ${a.uri}`);
         }
         lines.push('');
@@ -67,8 +69,9 @@ export function registerSearchTools(server: McpServer, client: SpotifyClient): v
       if (results.albums?.items.length) {
         lines.push(`ALBUMS (${results.albums.total} total):`);
         for (const al of results.albums.items) {
-          const artists = al.artists.map((a) => a.name).join(', ');
-          lines.push(`  • "${al.name}" by ${artists} (${al.release_date}, ${al.total_tracks} tracks) | URI: ${al.uri}`);
+          if (!al) continue;
+          const artists = al.artists?.map((a) => a.name).join(', ') ?? 'Unknown';
+          lines.push(`  • "${al.name}" by ${artists} (${al.release_date ?? 'unknown'}, ${al.total_tracks ?? 0} tracks) | URI: ${al.uri}`);
         }
         lines.push('');
       }
@@ -76,7 +79,9 @@ export function registerSearchTools(server: McpServer, client: SpotifyClient): v
       if (results.playlists?.items.length) {
         lines.push(`PLAYLISTS (${results.playlists.total} total):`);
         for (const p of results.playlists.items) {
-          lines.push(`  • "${p.name}" by ${p.owner.display_name ?? p.owner.id} (${p.tracks.total} tracks) | URI: ${p.uri}`);
+          if (!p) continue;
+          const owner = p.owner?.display_name ?? p.owner?.id ?? 'Unknown';
+          lines.push(`  • "${p.name}" by ${owner} (${p.tracks?.total ?? 0} tracks) | URI: ${p.uri}`);
         }
         lines.push('');
       }
@@ -84,7 +89,8 @@ export function registerSearchTools(server: McpServer, client: SpotifyClient): v
       if (results.shows?.items.length) {
         lines.push(`SHOWS (${results.shows.total} total):`);
         for (const s of results.shows.items) {
-          lines.push(`  • "${s.name}" by ${s.publisher} (${s.total_episodes} episodes) | URI: ${s.uri}`);
+          if (!s) continue;
+          lines.push(`  • "${s.name}" by ${s.publisher ?? 'Unknown'} (${s.total_episodes ?? 0} episodes) | URI: ${s.uri}`);
         }
         lines.push('');
       }
@@ -92,7 +98,8 @@ export function registerSearchTools(server: McpServer, client: SpotifyClient): v
       if (results.episodes?.items.length) {
         lines.push(`EPISODES (${results.episodes.total} total):`);
         for (const e of results.episodes.items) {
-          lines.push(`  • "${e.name}" — ${e.show.name} (${formatDuration(e.duration_ms)}, ${e.release_date}) | URI: ${e.uri}`);
+          if (!e) continue;
+          lines.push(`  • "${e.name}" — ${e.show?.name ?? 'Unknown'} (${formatDuration(e.duration_ms)}, ${e.release_date ?? 'unknown'}) | URI: ${e.uri}`);
         }
         lines.push('');
       }

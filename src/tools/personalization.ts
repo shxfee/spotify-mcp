@@ -287,9 +287,11 @@ export function registerPersonalizationTools(server: McpServer, client: SpotifyC
         `Featured playlists (${result.playlists.total} total, showing ${result.playlists.items.length}):`,
       ];
       for (const pl of result.playlists.items) {
+        if (!pl) continue;
+        const owner = pl.owner?.display_name ?? pl.owner?.id ?? 'Unknown';
         const desc = pl.description ? ` — ${pl.description}` : '';
         lines.push(
-          `  • "${pl.name}" by ${pl.owner.display_name ?? pl.owner.id}${desc} (${pl.tracks.total} tracks) | URI: ${pl.uri}`,
+          `  • "${pl.name}" by ${owner}${desc} (${pl.tracks?.total ?? 0} tracks) | URI: ${pl.uri}`,
         );
       }
       return { content: [{ type: 'text', text: lines.join('\n') }] };

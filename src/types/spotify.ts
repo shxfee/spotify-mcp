@@ -331,10 +331,12 @@ export interface AvailableGenreSeedsResponse {
   genres: string[];
 }
 
-// Featured playlists
+// Featured playlists (items may contain null entries)
 export interface FeaturedPlaylistsResponse {
   message: string;
-  playlists: SpotifyPaged<SpotifyPlaylistSimple>;
+  playlists: Omit<SpotifyPaged<SpotifyPlaylistSimple>, 'items'> & {
+    items: (SpotifyPlaylistSimple | null)[];
+  };
 }
 
 // Simplified playlist for search results
@@ -348,13 +350,14 @@ export interface SpotifyPlaylistSimple {
 }
 
 // Search response (GET /search)
+// Spotify may return null entries inside paginated items arrays
 export interface SearchResponse {
-  tracks?: { items: SpotifyTrack[]; total: number };
-  artists?: { items: SpotifyArtistFull[]; total: number };
-  albums?: { items: SpotifyAlbumItem[]; total: number };
-  playlists?: { items: SpotifyPlaylistSimple[]; total: number };
-  shows?: { items: SpotifyShowSimple[]; total: number };
-  episodes?: { items: SpotifyEpisodeSimple[]; total: number };
+  tracks?: { items: (SpotifyTrack | null)[]; total: number };
+  artists?: { items: (SpotifyArtistFull | null)[]; total: number };
+  albums?: { items: (SpotifyAlbumItem | null)[]; total: number };
+  playlists?: { items: (SpotifyPlaylistSimple | null)[]; total: number };
+  shows?: { items: (SpotifyShowSimple | null)[]; total: number };
+  episodes?: { items: (SpotifyEpisodeSimple | null)[]; total: number };
 }
 
 // Saved library items
