@@ -5,24 +5,12 @@ import type {
   SpotifyPaged,
   SpotifyPlaylistSimple,
   PlaylistItemsResponse,
-  UserProfile,
 } from '../types/spotify.js';
 
 function formatDuration(ms: number): string {
   const minutes = Math.floor(ms / 60000);
   const seconds = Math.floor((ms % 60000) / 1000);
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-}
-
-// Cache user ID for the session — it doesn't change
-let cachedUserId: string | null = null;
-
-async function getUserId(client: SpotifyClient): Promise<string> {
-  if (cachedUserId) return cachedUserId;
-  const profile = await client.get<UserProfile>('/me');
-  if (!profile) throw new Error('Could not retrieve user profile');
-  cachedUserId = profile.id;
-  return cachedUserId;
 }
 
 export function registerPlaylistTools(server: McpServer, client: SpotifyClient): void {
@@ -130,7 +118,6 @@ export function registerPlaylistTools(server: McpServer, client: SpotifyClient):
         .describe('Whether the playlist is collaborative. Default: false'),
     },
     async (args) => {
-      const userId = await getUserId(client);
       const body: Record<string, unknown> = {
         name: args.name,
         public: args.public ?? false,
@@ -142,7 +129,7 @@ export function registerPlaylistTools(server: McpServer, client: SpotifyClient):
         id: string;
         uri: string;
         external_urls: { spotify: string };
-      }>(`/users/${encodeURIComponent(userId)}/playlists`, body);
+      }>('/me/playlists', body);
       if (!result) throw new Error('Could not create playlist');
 
       return {
