@@ -60,7 +60,16 @@ Do not use deprecated endpoints. Prefer the current equivalents:
 | `GET /browse/categories` | Deprecated — avoid |
 | `GET /browse/new-releases` | Removed — do not use |
 | `GET /artists/{id}/top-tracks` | Removed — do not use |
+| `GET /artists/{id}/related-artists` | Removed — do not use |
+| `GET /recommendations` | Removed — use search-based discovery instead |
+| `GET /recommendations/available-genre-seeds` | Removed — use static genre list in `src/genres.ts` |
+| `GET /audio-features/{id}` | Removed — do not use |
 | Batch `GET /albums`, `GET /artists`, `GET /episodes`, `GET /shows` | Removed — use individual ID endpoints |
+
+## API Limits
+
+- `GET /search` enforces a **maximum `limit` of 10** results per request (400 for higher values). Use paginated requests with `offset` to fetch more.
+- Artist objects from `GET /artists/{id}` and search no longer include `genres`.
 
 ## Error Handling
 

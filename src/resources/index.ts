@@ -9,9 +9,9 @@ import type {
   SpotifyEpisode,
   RecentlyPlayedResponse,
   UserProfile,
-  AvailableGenreSeedsResponse,
   SpotifyArtistFull,
 } from '../types/spotify.js';
+import { GENRE_SEEDS } from '../genres.js';
 
 function formatDuration(ms: number): string {
   const minutes = Math.floor(ms / 60000);
@@ -207,20 +207,16 @@ export function registerResources(server: McpServer, client: SpotifyClient): voi
     },
   );
 
-  // spotify://genres — all seedable genre strings
+  // spotify://genres — all seedable genre strings (static list; the old API endpoint is retired)
   server.resource(
     'genres',
     'spotify://genres',
     { description: 'All available genre seeds for recommendations' },
     async () => {
-      const result = await client.get<AvailableGenreSeedsResponse>(
-        '/recommendations/available-genre-seeds',
-      );
-      if (!result) throw new Error('Could not retrieve genre seeds');
       return {
         contents: [{
           uri: 'spotify://genres',
-          text: `Available genre seeds (${result.genres.length}):\n${result.genres.join(', ')}`,
+          text: `Available genre seeds (${GENRE_SEEDS.length}):\n${GENRE_SEEDS.join(', ')}`,
           mimeType: 'text/plain',
         }],
       };
