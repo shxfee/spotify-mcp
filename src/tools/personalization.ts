@@ -26,6 +26,46 @@ const timeRangeSchema = z
 const limitSchema = (max = 50) =>
   z.number().int().min(1).max(max).optional().describe(`1–${max}. Default: 20`);
 
+// Audio attribute tuning — min/max/target for each float + int attribute.
+// Spotify retired the audio-features endpoint, so these can no longer be
+// applied; get_recommendations keeps them for backward compatibility only.
+// FLOAT_ATTRS + INT_ATTRS are the single source for both the request schema
+// and the "was tuning requested?" check below — keep them here, not inlined.
+const FLOAT_ATTRS = [
+  'acousticness',
+  'danceability',
+  'energy',
+  'instrumentalness',
+  'liveness',
+  'loudness',
+  'speechiness',
+  'tempo',
+  'valence',
+] as const;
+
+const INT_ATTRS = ['duration_ms', 'key', 'mode', 'time_signature'] as const;
+
+/** Every tuning param name (min/max/target × each attribute). */
+const TUNING_KEYS: string[] = [...FLOAT_ATTRS, ...INT_ATTRS].flatMap((attr) =>
+  ['min', 'max', 'target'].map((prefix) => `${prefix}_${attr}`),
+);
+
+/** Zod fragment for all tuning params — all optional, ints where appropriate. */
+function audioTuningSchema(): Record<string, z.ZodOptional<z.ZodNumber>> {
+  const schema: Record<string, z.ZodOptional<z.ZodNumber>> = {};
+  for (const attr of FLOAT_ATTRS) {
+    for (const prefix of ['min', 'max', 'target'] as const) {
+      schema[`${prefix}_${attr}`] = z.number().optional();
+    }
+  }
+  for (const attr of INT_ATTRS) {
+    for (const prefix of ['min', 'max', 'target'] as const) {
+      schema[`${prefix}_${attr}`] = z.number().int().optional();
+    }
+  }
+  return schema;
+}
+
 /** Fisher-Yates shuffle (in-place). */
 function shuffle<T>(arr: T[]): T[] {
   for (let i = arr.length - 1; i > 0; i--) {
@@ -198,46 +238,9 @@ export function registerPersonalizationTools(server: McpServer, client: SpotifyC
         .describe('Up to 5 genre strings (from get_available_genres) as recommendation seeds'),
       limit: limitSchema(100),
       market: z.string().optional().describe('ISO 3166-1 alpha-2 country code'),
-      // Keep tuning params in the schema for backward compatibility — silently ignored
-      min_energy: z.number().optional(),
-      max_energy: z.number().optional(),
-      target_energy: z.number().optional(),
-      min_danceability: z.number().optional(),
-      max_danceability: z.number().optional(),
-      target_danceability: z.number().optional(),
-      min_valence: z.number().optional(),
-      max_valence: z.number().optional(),
-      target_valence: z.number().optional(),
-      min_tempo: z.number().optional(),
-      max_tempo: z.number().optional(),
-      target_tempo: z.number().optional(),
-      min_acousticness: z.number().optional(),
-      max_acousticness: z.number().optional(),
-      target_acousticness: z.number().optional(),
-      min_instrumentalness: z.number().optional(),
-      max_instrumentalness: z.number().optional(),
-      target_instrumentalness: z.number().optional(),
-      min_liveness: z.number().optional(),
-      max_liveness: z.number().optional(),
-      target_liveness: z.number().optional(),
-      min_loudness: z.number().optional(),
-      max_loudness: z.number().optional(),
-      target_loudness: z.number().optional(),
-      min_speechiness: z.number().optional(),
-      max_speechiness: z.number().optional(),
-      target_speechiness: z.number().optional(),
-      min_duration_ms: z.number().int().optional(),
-      max_duration_ms: z.number().int().optional(),
-      target_duration_ms: z.number().int().optional(),
-      min_key: z.number().int().optional(),
-      max_key: z.number().int().optional(),
-      target_key: z.number().int().optional(),
-      min_mode: z.number().int().optional(),
-      max_mode: z.number().int().optional(),
-      target_mode: z.number().int().optional(),
-      min_time_signature: z.number().int().optional(),
-      max_time_signature: z.number().int().optional(),
-      target_time_signature: z.number().int().optional(),
+      // Tuning params kept for backward compatibility — silently ignored
+      // (Spotify retired audio-features). Generated from FLOAT_ATTRS/INT_ATTRS.
+      ...audioTuningSchema(),
     },
     async (args) => {
       const totalSeeds =
@@ -331,23 +334,8 @@ export function registerPersonalizationTools(server: McpServer, client: SpotifyC
         };
       }
 
-      // Check whether any tuning params were supplied
-      const tuningKeys = [
-        'min_energy', 'max_energy', 'target_energy',
-        'min_danceability', 'max_danceability', 'target_danceability',
-        'min_valence', 'max_valence', 'target_valence',
-        'min_tempo', 'max_tempo', 'target_tempo',
-        'min_acousticness', 'max_acousticness', 'target_acousticness',
-        'min_instrumentalness', 'max_instrumentalness', 'target_instrumentalness',
-        'min_liveness', 'max_liveness', 'target_liveness',
-        'min_loudness', 'max_loudness', 'target_loudness',
-        'min_speechiness', 'max_speechiness', 'target_speechiness',
-        'min_duration_ms', 'max_duration_ms', 'target_duration_ms',
-        'min_key', 'max_key', 'target_key',
-        'min_mode', 'max_mode', 'target_mode',
-        'min_time_signature', 'max_time_signature', 'target_time_signature',
-      ] as const;
-      const hasTuning = tuningKeys.some((k) => (args as Record<string, unknown>)[k] !== undefined);
+      // Check whether any tuning params were supplied (same source as the schema)
+      const hasTuning = TUNING_KEYS.some((k) => (args as Record<string, unknown>)[k] !== undefined);
 
       const lines: string[] = [];
       if (hasTuning) {
